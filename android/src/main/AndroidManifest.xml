@@ -1,0 +1,17 @@
+<!-- AndroidManifest.xml -->
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.reactlibrary">
+
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <application >
+        <service
+            android:name=".LocationForegroundService"
+            android:enabled="true"
+            android:foregroundServiceType="location"
+            android:exported="true" />
+    </application>
+</manifest>
