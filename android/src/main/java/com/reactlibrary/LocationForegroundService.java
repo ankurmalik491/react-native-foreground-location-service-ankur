@@ -16,6 +16,7 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
+import android.content.res.Resources;
 
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
@@ -62,7 +63,10 @@ public class LocationForegroundService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
-            startForegroundService();
+            String title = intent.getStringExtra("title");
+            String icon = intent.getStringExtra("icon");
+//            String color = intent.getStringExtra("color");
+            startForegroundService(title,icon);
         }
         return super.onStartCommand(intent, flags, startId);
     }
@@ -100,10 +104,10 @@ public class LocationForegroundService extends Service {
     }
 
     /* Used to build and start foreground service. */
-    private void startForegroundService() {
+    private void startForegroundService(String title, String icon) {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            createNotificationChannel("background_location_service", "Background location service channel");
+            createNotificationChannel("background_location_service", "Background location service channel",title,icon);
         } else {
 
             // Create notification default intent.
@@ -137,27 +141,55 @@ public class LocationForegroundService extends Service {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private void createNotificationChannel(String channelId, String channelName) {
-                NotificationChannel chan = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT);
+    private void createNotificationChannel(String channelId, String channelName,String title, String icon) {
+        NotificationChannel chan = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH);
         chan.setLightColor(Color.BLUE);
-        chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        chan.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         assert manager != null;
         manager.createNotificationChannel(chan);
 
-        Intent dialogIntent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(getApplication().getPackageName());
-        PendingIntent notifyPendingIntent = PendingIntent.getActivity(
-                this, 0, dialogIntent, PendingIntent.FLAG_UPDATE_CURRENT
-        );
+//        Intent dialogIntent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(getApplication().getPackageName());
+//        PendingIntent notifyPendingIntent = PendingIntent.getActivity(
+//                this, 0, dialogIntent, PendingIntent.FLAG_UPDATE_CURRENT
+//        );
+        Intent fullScreenIntent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(getApplication().getPackageName());
+        PendingIntent fullScreenPendingIntent = PendingIntent.getActivity(this, 0,
+                fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId);
-        Notification notification = notificationBuilder.setOngoing(true)
-                .setContentTitle(getApplicationName(this))
-                .setPriority(NotificationManager.IMPORTANCE_MIN)
+        if(title!=null){
+            notificationBuilder.setContentTitle(title);
+        }
+        else{
+            notificationBuilder.setContentTitle(getApplicationName(this));
+        }
+        int smallIconResId;
+        if(icon!=null){
+            smallIconResId = getResources().getIdentifier(icon, "drawable", getApplicationContext().getPackageName());
+        }
+        else{
+            smallIconResId = getResources().getIdentifier("ic_notification", "drawable", getApplicationContext().getPackageName());
+        }
+        notificationBuilder.setSmallIcon(smallIconResId);
+
+
+//        int resourceId ;
+//        if (color != null) {
+//            ContextCompat.getColor(this, color)
+//            resourceId = getResources().getColor()
+//            notificationBuilder.setColor(Color.parseColor(color));
+//        }
+
+        Notification notification = notificationBuilder
+                .setOngoing(true)
+                .setPriority(NotificationManager.IMPORTANCE_HIGH)
                 .setCategory(Notification.CATEGORY_SERVICE)
-                .setSmallIcon(R.drawable.common_google_signin_btn_icon_dark)
-                .setContentIntent(notifyPendingIntent)
-                // .setFullScreenIntent(notifyPendingIntent, true)
+
+                .setContentIntent(fullScreenPendingIntent)
+//                .setFullScreenIntent(fullScreenPendingIntent, true)
+//                .setTimeoutAfter((1000))
                 .build();
+
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
         notificationManager.notify(1, notificationBuilder.build());
         startForeground(1, notification);
@@ -182,3 +214,4 @@ public class LocationForegroundService extends Service {
 
     }
 }
+

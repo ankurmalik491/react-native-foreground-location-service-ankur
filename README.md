@@ -12,13 +12,11 @@
 ```javascript
 import {
   DeviceEventEmitter,
-  NativeAppEventEmitter,
 } from 'react-native';
 import AnkurForgroundServiceLocation from 'react-native-foreground-location-service-ankur';
 
 // TODO: What to do with the module?
 const EventEmitter = Platform.select({
-  ios: () => NativeAppEventEmitter,
   android: () => DeviceEventEmitter,
 })();
 
@@ -29,8 +27,13 @@ EventEmitter.addListener('locationFetchingBackground', (location) => {
   });
 
 
+const notificationConfig ={
+    title:"Fetching your location",
+    icon:"ic_notification",
+    color:"#0000ff"
+  }
    // start Service
-  AnkurForgroundServiceLocation.open();
+  AnkurForgroundServiceLocation.open(notificationConfig);
 
   //stop service
   AnkurForgroundServiceLocation.close();
